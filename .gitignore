@@ -1,0 +1,35 @@
+# virtual environment
+venv/
+.venv/
+
+# data (VOC dataset is large, never commit it)
+data/VOCdevkit/
+data/*.tar
+data/*.zip
+
+# model weights
+models/*.pt
+models/*.pth
+models/*.onnx
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# notebooks
+.ipynb_checkpoints/
+
+# env files
+.env
+.env.*
+
+# VSCode
+.vscode/
+
+# OS
+Thumbs.db
+desktop.ini
