@@ -94,7 +94,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 checkpoint = torch.load('models/best_model.pt', map_location=device)
 model = MultiTaskModel()
-model.load_state_dict(checkpoint['model_state_dict'])
+model.load_state_dict(checkpoint["model_state_dict"])
+model.to(device)  # add this line
+model.eval()      # add this line
 print(f"Loaded checkpoint from epoch {checkpoint['epoch']}")
 
 evaluator = Evaluator(model, device)
