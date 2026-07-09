@@ -8,6 +8,10 @@ from src.data.utils import IDX_TO_CLASS
 from src.data.transforms import get_val_transforms
 from src.ui.visualize import draw_prediction
 from PIL import Image
+import warnings
+os.environ["CUDA_VISIBLE_DEVICES"] = ""  # disable CUDA entirely on Spaces
+warnings.filterwarnings("ignore", message=".*NVML.*")
+warnings.filterwarnings("ignore", message=".*cuda.*")
 
 
 # ---- model loading ----
