@@ -13,6 +13,15 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""  # disable CUDA entirely on Spaces
 warnings.filterwarnings("ignore", message=".*NVML.*")
 warnings.filterwarnings("ignore", message=".*cuda.*")
 
+# HuggingFace ZeroGPU compatibility
+try:
+    import spaces
+    @spaces.GPU(duration=0)
+    def warmup():
+        pass
+    warmup()
+except Exception:
+    pass  # not on HuggingFace Spaces, skip
 
 # ---- model loading ----
 
