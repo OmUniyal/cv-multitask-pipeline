@@ -14,7 +14,10 @@ from PIL import Image
 
 REPO_ID = "OmUniyal/cv-multitask-pipeline"
 MODEL_FILE = "best_model.pt"
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# HuggingFace free Spaces are CPU-only
+DEVICE = torch.device("cuda" if (torch.cuda.is_available() and not os.environ.get("SPACE_ID")) else "cpu")
+print(f"Device: {DEVICE}")
 
 
 def load_model():
