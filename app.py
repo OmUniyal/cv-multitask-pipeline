@@ -1,4 +1,5 @@
 import os
+import warnings
 import torch
 import gradio as gr
 from pathlib import Path
@@ -8,38 +9,20 @@ from src.data.utils import IDX_TO_CLASS
 from src.data.transforms import get_val_transforms
 from src.ui.visualize import draw_prediction
 from PIL import Image
-import warnings
-os.environ["CUDA_VISIBLE_DEVICES"] = ""  # disable CUDA entirely on Spaces
+
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 warnings.filterwarnings("ignore", message=".*NVML.*")
 warnings.filterwarnings("ignore", message=".*cuda.*")
 
-# HuggingFace ZeroGPU compatibility
-try:
-    import spaces
-    @spaces.GPU(duration=0)
-    def warmup():
-        pass
-    warmup()
-except Exception:
-    pass  # not on HuggingFace Spaces, skip
-
 # ---- model loading ----
-
 REPO_ID = "OmUniyal/cv-multitask-pipeline"
 MODEL_FILE = "best_model.pt"
-
-# HuggingFace free Spaces are CPU-only
-DEVICE = torch.device("cuda" if (torch.cuda.is_available() and not os.environ.get("SPACE_ID")) else "cpu")
+DEVICE = torch.device("cpu")
 print(f"Device: {DEVICE}")
 
 
 def load_model():
-    """
-    Download checkpoint from HuggingFace Model Hub and load into memory.
-    Falls back to local models/best_model.pt if available.
-    """
     local_path = Path("models/best_model.pt")
-
     if local_path.exists():
         print(f"Loading model from local path: {local_path}")
         checkpoint_path = str(local_path)
@@ -49,7 +32,6 @@ def load_model():
             repo_id=REPO_ID,
             filename=MODEL_FILE,
         )
-
     checkpoint = torch.load(
         checkpoint_path,
         map_location=DEVICE,
@@ -63,17 +45,16 @@ def load_model():
     return model
 
 
-# load once at startup
 model = load_model()
 
+try:
+    import spaces
+    gpu_decorator = spaces.GPU(duration=60)
+except ImportError:
+    gpu_decorator = lambda f: f
 
-# ---- inference ----
-
-def predict(image: Image.Image) -> tuple:
-    """
-    Run inference on a PIL image.
-    Returns annotated image and prediction details text.
-    """
+@gpu_decorator
+def predict(image):
     if image is None:
         return None, "Please upload an image."
 
@@ -91,7 +72,6 @@ def predict(image: Image.Image) -> tuple:
     confidence = confidence.item()
     bbox = bbox_pred[0].tolist()
 
-    # swap if invalid
     if bbox[0] > bbox[2]:
         bbox[0], bbox[2] = bbox[2], bbox[0]
     if bbox[1] > bbox[3]:
@@ -124,8 +104,6 @@ def predict(image: Image.Image) -> tuple:
 
     return annotated, result_text
 
-
-# ---- Gradio interface ----
 
 with gr.Blocks(title="CV Multitask Pipeline") as demo:
     gr.Markdown("""
@@ -164,7 +142,7 @@ with gr.Blocks(title="CV Multitask Pipeline") as demo:
 
     **Results:** Top-1 Accuracy: 79.9% | Mean IoU: 0.468 | IoU@0.5: 49.2%
 
-    [GitHub](https://github.com/OmUniyal/cv-multitask-pipeline) | 
+    [GitHub](https://github.com/OmUniyal/cv-multitask-pipeline) |
     [Model weights](https://huggingface.co/OmUniyal/cv-multitask-pipeline)
     """)
 
@@ -173,4 +151,5 @@ if __name__ == "__main__":
     demo.launch(
         server_name="0.0.0.0",
         server_port=int(os.environ.get("PORT", 7860)),
+        show_api=False
     )
