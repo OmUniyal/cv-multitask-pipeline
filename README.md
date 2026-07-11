@@ -1,16 +1,3 @@
----
-title: CV Multitask Pipeline
-emoji: 🔍
-colorFrom: blue
-colorTo: green
-sdk: gradio
-sdk_version: "4.25.0"
-app_file: app.py
-pinned: false
-python_version: "3.12"
-hardware: cpu-basic
----
-
 # CV Multitask Pipeline
 
 > Simultaneous object classification and detection using a shared EfficientNet-B0 backbone with custom task heads — deployed as a production-grade FastAPI + Gradio application.
